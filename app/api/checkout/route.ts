@@ -1,44 +1,72 @@
+// ==========================================
+// FULL FILE: app/api/checkout/route.ts
+// ==========================================
+
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+export const dynamic = 'force-dynamic';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
 
 export async function POST(req: Request) {
   try {
-    const { tier } = await req.json();
+    const body = await req.json();
+    let { priceId, tier, customerEmail, email, tierType } = body;
+    
+    const userEmail = customerEmail || email || 'operator@enterprise.com';
 
-    const tierConfig: Record<string, { name: string; amount: number; interval?: 'month' }> = {
-      single: { name: 'Single Dispute Pass', amount: 1999 },
-      growth: { name: 'Growth Operator (25/mo)', amount: 4999, interval: 'month' },
-      pro: { name: 'Professional Unlimited', amount: 14900, interval: 'month' },
-    };
+    // Map tier names coming from components (e.g. Pricing.tsx) to actual Stripe Price IDs
+    if (!priceId && tier) {
+      switch (tier) {
+        case 'Single Dispute Pass':
+          priceId = process.env.STRIPE_PRICE_SINGLE;
+          tierType = 'payment';
+          break;
+        case '5-Dispute Bundle':
+        case '5-Dispute Pack':
+          priceId = process.env.STRIPE_PRICE_BUNDLE_5;
+          tierType = 'payment';
+          break;
+        case 'Growth Operator':
+        case 'Growth Tier':
+          priceId = process.env.STRIPE_PRICE_GROWTH;
+          tierType = 'subscription';
+          break;
+        case 'Professional Operator':
+        case 'Pro Tier':
+          priceId = process.env.STRIPE_PRICE_PRO;
+          tierType = 'subscription';
+          break;
+        default:
+          priceId = tier; // Fallback if direct ID was passed
+      }
+    }
 
-    const selectedTier = tierConfig[tier] || tierConfig.single;
+    if (!priceId) {
+      return NextResponse.json({ error: 'Stripe Price ID or Tier is required.' }, { status: 400 });
+    }
 
-    const lineItem: Stripe.Checkout.SessionCreateParams.LineItem = {
-      price_data: {
-        currency: 'usd',
-        product_data: {
-          name: `ChargebackKiller - ${selectedTier.name}`,
-        },
-        unit_amount: selectedTier.amount,
-        ...(selectedTier.interval && {
-          recurring: { interval: selectedTier.interval },
-        }),
-      },
-      quantity: 1,
-    };
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const mode: Stripe.Checkout.Session.Mode = (tierType === 'subscription') ? 'subscription' : 'payment';
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
-      line_items: [lineItem],
-      mode: selectedTier.interval ? 'subscription' : 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/?success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/?canceled=true`,
+      line_items: [{ price: priceId, quantity: 1 }],
+      mode,
+      customer_email: userEmail !== 'operator@enterprise.com' ? userEmail : undefined,
+      metadata: {
+        email: userEmail,
+        priceId,
+        tierType: tierType || 'one_time',
+      },
+      success_url: `${appUrl}/?session_id={CHECKOUT_SESSION_ID}&status=success`,
+      cancel_url: `${appUrl}/?status=cancelled`,
     });
 
     return NextResponse.json({ url: session.url });
   } catch (err: any) {
+    console.error('Stripe Checkout Error:', err.message);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

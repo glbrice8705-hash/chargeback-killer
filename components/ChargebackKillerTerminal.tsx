@@ -19,7 +19,23 @@ import RepresentmentForge from './RepresentmentForge';
 import ExclusionVault from './ExclusionVault';
 import RecoveryLedger from './RecoveryLedger';
 
-export default function ChargebackKillerTerminal() {
+const RepresentmentForgeWithProps = RepresentmentForge as React.ComponentType<{
+  onGenerate?: (payload?: any) => void;
+  loading?: boolean;
+  dossier?: string | null;
+}>;
+
+interface TerminalProps {
+  onGenerateDossier?: (payload?: any) => void;
+  isGenerating?: boolean;
+  dossierData?: string | null;
+}
+
+export default function ChargebackKillerTerminal({ 
+  onGenerateDossier, 
+  isGenerating, 
+  dossierData 
+}: TerminalProps) {
   const [activeTab, setActiveTab] = useState<'command' | 'threats' | 'forge' | 'vault' | 'ledger'>('command');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -108,7 +124,7 @@ export default function ChargebackKillerTerminal() {
         <div className="space-y-4">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="w-full flex items-center justify-center gap-2 py-3 bg-[#38BDF8] text-[#050505] font-mono text-xs font-bold rounded-xl hover:bg-[#E0F2FE] transition-all shadow-[0_0_25px_rgba(56,189,248,0.25)]"
+            className="w-full flex items-center justify-center gap-2 py-3 bg-[#38BDF8] text-[#050505] font-mono text-xs font-bold rounded-xl hover:bg-[#E0F2FE] transition-all shadow-[0_0_25px_rgba(56,189,248,0.25)] cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Inject New Case</span>
@@ -161,7 +177,6 @@ export default function ChargebackKillerTerminal() {
         <div className="flex-1 p-8 overflow-y-auto">
           {activeTab === 'command' && (
             <div className="space-y-8 animate-in fade-in duration-300">
-              {/* Metrics Grid */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div className="p-6 bg-[#16181D] border border-[#272A33] rounded-2xl">
                   <p className="text-xs font-mono text-[#94A3B8] mb-2">Total Protected Revenue</p>
@@ -189,15 +204,7 @@ export default function ChargebackKillerTerminal() {
                   <p className="text-[10px] font-mono text-emerald-400 mt-2">Fully settled to bank</p>
                 </div>
               </div>
-              
-                <div className="p-6 bg-[#16181D] border border-[#272A33] rounded-2xl overflow-hidden">
-                   <p className="text-xs font-mono text-[#94A3B8] mb-2 truncate">Total Protected Revenue</p>
-                   <p className="text-2xl md:text-3xl font-mono font-bold text-white tracking-tight truncate">$142,890.00</p>
-                   <p className="text-[10px] font-mono text-emerald-400 mt-2 flex items-center gap-1">
-                   <ArrowUpRight className="w-3 h-3 shrink-0" /> +18.4% this month</p>
-              </div>
 
-              {/* Terminal Feed Placeholder */}
               <div className="p-6 bg-[#16181D] border border-[#272A33] rounded-2xl">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="font-mono text-sm font-bold flex items-center gap-2">
@@ -223,13 +230,18 @@ export default function ChargebackKillerTerminal() {
           )}
 
           {activeTab === 'threats' && <ThreatMatrix />}
-          {activeTab === 'forge' && <RepresentmentForge />}
+          {activeTab === 'forge' && (
+            <RepresentmentForgeWithProps 
+              onGenerate={onGenerateDossier} 
+              loading={isGenerating} 
+              dossier={dossierData} 
+            />
+          )}
           {activeTab === 'vault' && <ExclusionVault />}
           {activeTab === 'ledger' && <RecoveryLedger />}
         </div>
       </main>
 
-      {/* Add Dispute Modal */}
       <AddDisputeModals 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 

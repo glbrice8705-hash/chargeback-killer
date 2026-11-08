@@ -1,141 +1,176 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Cpu, Download, CheckCircle2, FileText, Send } from 'lucide-react';
+import { Cpu, Terminal, Copy, Send } from 'lucide-react';
 
-export default function RepresentmentForge() {
-  const [disputeId, setDisputeId] = useState('dp_9982a_visa');
-  const [customerName, setCustomerName] = useState('Marcus Vance');
-  const [amount, setAmount] = useState('450.00');
-  const [reasonCode, setReasonCode] = useState('10.4 Fraud / Unauthorized');
-  const [dossier, setDossier] = useState('');
-  const [generating, setGenerating] = useState(false);
+interface ForgeProps {
+  onGenerate?: (payload: any) => void;
+  loading?: boolean;
+  dossier?: string | null;
+}
 
-  const handleSynthesize = () => {
-    setGenerating(true);
-    setTimeout(() => {
-      setDossier(`==================================================
-VISA COMPELLING EVIDENCE 3.0 LEGAL REBUTTAL DOSSIER
-==================================================
-DISPUTE ID: ${disputeId}
-CUSTOMER: ${customerName}
-DISPUTED AMOUNT: $${amount}
-REASON CODE: ${reasonCode}
-TIMESTAMP: ${new Date().toISOString()}
+export default function RepresentmentForge({ onGenerate, loading, dossier }: ForgeProps) {
+  const [formData, setFormData] = useState({
+    transactionId: 'TX-99482-B',
+    amount: '149.00',
+    currency: 'USD',
+    reasonCode: '10.4 / Fraud',
+    customerEmail: 'client@domain.com',
+    ipAddress: '192.0.2.45',
+    deviceFingerprint: 'macOS / Safari / 14 prior sessions',
+  });
 
-1. EVIDENTIARY BINDING & IP TELEMETRY
-- Verified IP Geolocation: 185.220.101.4 (Consistent with 12-month historical order patterns).
-- Device Fingerprint Hash: match_verified_sha256_e891
-- AVS Verification: Exact match on billing postal code and street number (Street Match: Y, Postal Match: Y).
-
-2. FULFILLMENT & DELIVERY BINDING (CE 3.0 CRITERIA)
-- Carrier Tracking: Fedex #778291920031
-- GPS Delivery Coordinates: 38.8951° N, 90.1799° W (Delivered directly to cardholder billing address).
-- Delivery Signature: Confirmed signed by recipient.
-
-3. LEGAL CONCLUSION
-In accordance with Visa Core Rules and Visa CE 3.0 standards, merchant has established two prior undisputed transactions possessing identical IP, device signature, and delivery destination. We request immediate reversal of chargeback liability and full credit of $${amount} to merchant settlement account.
-==================================================`);
-      setGenerating(false);
-    }, 1000);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleExportPDF = () => {
-    const blob = new Blob([dossier], { type: 'text/plain;charset=utf-8' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `representment-dossier-${disputeId}.txt`;
-    a.click();
-    window.URL.revokeObjectURL(url);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (onGenerate) {
+      onGenerate(formData);
+    }
   };
 
   return (
     <div className="space-y-6 font-mono text-xs">
-      
-      <div className="p-6 bg-[#16181D] border border-[#272A33] rounded-2xl space-y-4">
-        <h2 className="text-lg font-bold text-white uppercase tracking-wider flex items-center gap-2">
-          <Cpu className="w-5 h-5 text-[#38BDF8]" />
-          Visa CE 3.0 Representment Forge
-        </h2>
-        <p className="text-[#94A3B8]">Synthesize bank-compliant legal rebuttal dossiers backed by cryptographic delivery proof.</p>
+      {/* Header */}
+      <div className="p-6 bg-[#16181D] border border-[#272A33] rounded-2xl flex items-center justify-between">
+        <div>
+          <h3 className="text-sm font-bold text-white flex items-center gap-2">
+            <Cpu className="w-4 h-4 text-[#38BDF8]" />
+            Representment Forge & AI Narrative Generator
+          </h3>
+          <p className="text-xs text-[#94A3B8] mt-1">
+            Synthesize raw transaction logs and IP metadata into an airtight Visa CE 3.0 legal dispute dossier.
+          </p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {/* Configuration & Telemetry Input Form */}
+      <form onSubmit={handleSubmit} className="p-6 bg-[#16181D] border border-[#272A33] rounded-2xl space-y-4">
+        <h4 className="text-xs font-bold uppercase tracking-wider text-[#38BDF8] mb-2">Transaction Telemetry & Parameters</h4>
         
-        {/* Input Form */}
-        <div className="p-6 bg-[#16181D] border border-[#272A33] rounded-2xl space-y-4">
-          <h3 className="text-white font-bold text-sm">Docket Parameters</h3>
-          
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="block text-[#94A3B8] mb-1">Dispute / Docket ID</label>
-            <input
-              type="text"
-              value={disputeId}
-              onChange={(e) => setDisputeId(e.target.value)}
-              className="w-full bg-[#050505] border border-[#272A33] rounded-lg p-2.5 text-white focus:outline-none focus:border-[#38BDF8]"
+            <label className="block text-[#94A3B8] mb-1">Transaction ID</label>
+            <input 
+              type="text" 
+              name="transactionId" 
+              value={formData.transactionId} 
+              onChange={handleChange}
+              className="w-full bg-[#050505] border border-[#272A33] focus:border-[#38BDF8] rounded-xl px-4 py-2.5 text-white outline-none transition-colors"
+              required
             />
           </div>
 
           <div>
-            <label className="block text-[#94A3B8] mb-1">Customer Name</label>
-            <input
-              type="text"
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-              className="w-full bg-[#050505] border border-[#272A33] rounded-lg p-2.5 text-white focus:outline-none focus:border-[#38BDF8]"
+            <label className="block text-[#94A3B8] mb-1">Amount & Currency</label>
+            <div className="flex gap-2">
+              <input 
+                type="text" 
+                name="amount" 
+                value={formData.amount} 
+                onChange={handleChange}
+                className="w-2/3 bg-[#050505] border border-[#272A33] focus:border-[#38BDF8] rounded-xl px-4 py-2.5 text-white outline-none transition-colors"
+                required
+              />
+              <input 
+                type="text" 
+                name="currency" 
+                value={formData.currency} 
+                onChange={handleChange}
+                className="w-1/3 bg-[#050505] border border-[#272A33] focus:border-[#38BDF8] rounded-xl px-3 py-2.5 text-white outline-none transition-colors text-center"
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-[#94A3B8] mb-1">Dispute Reason Code</label>
+            <input 
+              type="text" 
+              name="reasonCode" 
+              value={formData.reasonCode} 
+              onChange={handleChange}
+              className="w-full bg-[#050505] border border-[#272A33] focus:border-[#38BDF8] rounded-xl px-4 py-2.5 text-white outline-none transition-colors"
+              required
             />
           </div>
 
           <div>
-            <label className="block text-[#94A3B8] mb-1">Disputed Amount ($)</label>
-            <input
-              type="text"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              className="w-full bg-[#050505] border border-[#272A33] rounded-lg p-2.5 text-white focus:outline-none focus:border-[#38BDF8]"
+            <label className="block text-[#94A3B8] mb-1">Customer Email</label>
+            <input 
+              type="text" 
+              name="customerEmail" 
+              value={formData.customerEmail} 
+              onChange={handleChange}
+              className="w-full bg-[#050505] border border-[#272A33] focus:border-[#38BDF8] rounded-xl px-4 py-2.5 text-white outline-none transition-colors"
+              required
             />
           </div>
 
+          <div>
+            <label className="block text-[#94A3B8] mb-1">IP Address</label>
+            <input 
+              type="text" 
+              name="ipAddress" 
+              value={formData.ipAddress} 
+              onChange={handleChange}
+              className="w-full bg-[#050505] border border-[#272A33] focus:border-[#38BDF8] rounded-xl px-4 py-2.5 text-white outline-none transition-colors"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-[#94A3B8] mb-1">Device Fingerprint / History</label>
+            <input 
+              type="text" 
+              name="deviceFingerprint" 
+              value={formData.deviceFingerprint} 
+              onChange={handleChange}
+              className="w-full bg-[#050505] border border-[#272A33] focus:border-[#38BDF8] rounded-xl px-4 py-2.5 text-white outline-none transition-colors"
+              required
+            />
+          </div>
+        </div>
+
+        <div className="pt-4 flex justify-end">
           <button
-            onClick={handleSynthesize}
-            disabled={generating}
-            className="w-full py-3 bg-[#38BDF8] text-[#050505] font-bold rounded-xl hover:bg-[#E0F2FE] transition-all cursor-pointer shadow-[0_0_20px_rgba(56,189,248,0.2)] disabled:opacity-50"
+            type="submit"
+            disabled={loading}
+            className="flex items-center gap-2 px-6 py-3 bg-[#38BDF8] text-[#050505] font-bold text-xs rounded-xl hover:bg-[#E0F2FE] transition-all shadow-[0_0_20px_rgba(56,189,248,0.2)] disabled:bg-neutral-800 disabled:text-neutral-500 cursor-pointer"
           >
-            {generating ? 'Synthesizing Legal Rebuttal...' : 'Synthesize Legal Rebuttal Dossier'}
+            <Send className="w-4 h-4" />
+            <span>{loading ? 'Synthesizing Narrative...' : 'Generate Legal Dispute Dossier'}</span>
           </button>
         </div>
+      </form>
 
-        {/* Output Preview */}
-        <div className="p-6 bg-[#16181D] border border-[#272A33] rounded-2xl flex flex-col justify-between">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-white font-bold text-sm">Synthesized Dossier Output</h3>
-              {dossier && <span className="text-emerald-400 font-bold">READY TO SUBMIT</span>}
-            </div>
-
-            <textarea
-              readOnly
-              rows={12}
-              value={dossier || 'Click "Synthesize Legal Rebuttal Dossier" to generate bank-ready documentation...'}
-              className="w-full bg-[#050505] border border-[#272A33] rounded-lg p-3 text-[#38BDF8] text-[11px] font-mono focus:outline-none resize-none"
-            />
-          </div>
-
-          <div className="pt-4">
+      {/* Dossier Output Display */}
+      {dossier ? (
+        <div className="p-6 bg-[#16181D] border border-[#272A33] rounded-2xl shadow-xl">
+          <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#272A33]">
+            <span className="text-xs text-emerald-400 font-semibold">
+              Status: Narrative Evidence Packet Ready
+            </span>
             <button
-              onClick={handleExportPDF}
-              disabled={!dossier}
-              className="w-full py-3 bg-[#050505] border border-[#38BDF8] text-[#38BDF8] hover:bg-[#38BDF8] hover:text-[#050505] font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-30"
+              onClick={() => navigator.clipboard.writeText(dossier)}
+              className="flex items-center gap-1.5 text-xs bg-[#050505] border border-[#272A33] hover:border-[#38BDF8] px-3 py-1.5 rounded-lg text-neutral-300 transition-colors cursor-pointer"
             >
-              <Download className="w-4 h-4" />
-              <span>Export Dossier Document (TXT/PDF)</span>
+              <Copy className="w-3.5 h-3.5" />
+              Copy Markdown
             </button>
           </div>
+          <article className="prose prose-invert max-w-none whitespace-pre-wrap font-sans text-sm text-neutral-200 leading-relaxed">
+            {dossier}
+          </article>
         </div>
-
-      </div>
-
+      ) : (
+        <div className="p-12 text-center border-2 border-dashed border-[#272A33] rounded-2xl">
+          <Terminal className="w-8 h-8 text-[#94A3B8] mx-auto mb-3 opacity-50" />
+          <p className="text-xs text-[#94A3B8]">Configure transaction parameters above and click "Generate Legal Dispute Dossier" to execute.</p>
+        </div>
+      )}
     </div>
   );
 }

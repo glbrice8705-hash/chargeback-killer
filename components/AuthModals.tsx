@@ -4,6 +4,15 @@ import React, { useState } from 'react';
 import { Shield, Mail, KeyRound, ArrowRight, X, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('CRITICAL: Supabase environment variables (NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY) are missing.');
+}
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -18,11 +27,6 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin' }: A
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
-
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
 
   if (!isOpen) return null;
 
@@ -68,8 +72,6 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin' }: A
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 text-white font-sans">
       <div className="w-full max-w-md bg-[#16181D] border border-[#272A33] rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden relative">
-        
-        {/* Close Button */}
         <button 
           onClick={onClose}
           className="absolute top-4 right-4 p-1.5 text-[#94A3B8] hover:text-white bg-[#050505] border border-[#272A33] rounded-lg transition-colors cursor-pointer"
@@ -77,7 +79,6 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin' }: A
           <X className="w-4 h-4" />
         </button>
 
-        {/* Header */}
         <div className="p-8 pb-6 text-center border-b border-[#272A33] bg-[#0A0A0C]">
           <div className="inline-flex p-3 bg-[#16181D] border border-[#38BDF8]/40 rounded-xl mb-4 shadow-[0_0_20px_rgba(56,189,248,0.15)]">
             <Shield className="w-6 h-6 text-[#38BDF8]" />
@@ -94,7 +95,6 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin' }: A
           </p>
         </div>
 
-        {/* Error / Success Banners */}
         {errorMsg && (
           <div className="mx-8 mt-6 p-3 bg-red-950/50 border border-red-500/50 rounded-lg flex items-center gap-2 text-xs font-mono text-red-400">
             <AlertTriangle className="w-4 h-4 shrink-0" />
@@ -109,7 +109,6 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin' }: A
           </div>
         )}
 
-        {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-8 space-y-4 font-mono text-xs">
           <div>
             <label className="block text-[#94A3B8] mb-1">Secure Operator Email</label>
@@ -143,7 +142,6 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin' }: A
             </div>
           )}
 
-          {/* Remember Me & Reset Link */}
           {mode === 'signin' && (
             <div className="flex items-center justify-between text-[11px] pt-1">
               <label className="flex items-center gap-2 cursor-pointer text-[#94A3B8] hover:text-white">
@@ -176,7 +174,6 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin' }: A
             <ArrowRight className="w-4 h-4" />
           </button>
 
-          {/* Mode Switcher */}
           <div className="text-center pt-4 border-t border-[#272A33] text-[#94A3B8]">
             {mode === 'signin' && (
               <p>New merchant operator? <button type="button" onClick={() => setMode('signup')} className="text-[#38BDF8] hover:underline font-bold cursor-pointer bg-transparent border-none p-0 text-xs">Initialize Node</button></p>
